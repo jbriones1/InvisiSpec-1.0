@@ -1,3 +1,6 @@
+import itertools
+from functools import reduce
+
 # Copyright (c) 2003-2004 The Regents of The University of Michigan
 # All rights reserved.
 #
@@ -29,17 +32,19 @@
 all = False
 descriptions = False
 
+
 class Value:
-    def __init__(self, value, precision, percent = False):
+    def __init__(self, value, precision, percent=False):
         self.value = value
         self.precision = precision
         self.percent = percent
+
     def __str__(self):
         if isinstance(self.value, str):
-            if self.value.lower() == 'nan':
-                value = 'NaN'
-            if self.value.lower() == 'inf':
-                value = 'Inf'
+            if self.value.lower() == "nan":
+                value = "NaN"
+            if self.value.lower() == "inf":
+                value = "Inf"
         else:
             if self.precision >= 0:
                 format = "%%.%df" % self.precision
@@ -59,22 +64,23 @@ class Value:
 
         return value
 
+
 class Print:
     def __init__(self, **vals):
         self.__dict__.update(vals)
 
     def __str__(self):
         value = Value(self.value, self.precision)
-        pdf = ''
-        cdf = ''
-        if self.__dict__.has_key('pdf'):
+        pdf = ""
+        cdf = ""
+        if "pdf" in self.__dict__:
             pdf = Value(self.pdf, 2, True)
-        if self.__dict__.has_key('cdf'):
+        if "cdf" in self.__dict__:
             cdf = Value(self.cdf, 2, True)
 
         output = "%-40s %12s %8s %8s" % (self.name, value, pdf, cdf)
 
-        if descriptions and self.__dict__.has_key('desc') and self.desc:
+        if descriptions and "desc" in self.__dict__ and self.desc:
             output = "%s # %s" % (output, self.desc)
 
         return output
@@ -85,13 +91,14 @@ class Print:
         if self.value == 0.0 and (self.flags & flags_nozero):
             return False
         if isinstance(self.value, str):
-            if self.value == 'NaN' and (self.flags & flags_nonan):
+            if self.value == "NaN" and (self.flags & flags_nonan):
                 return False
         return True
 
     def display(self):
         if self.doprint():
-            print self
+            print(self)
+
 
 class VectorDisplay:
     def display(self):
@@ -103,31 +110,32 @@ class VectorDisplay:
             if not len(self.value):
                 return
 
-            mytotal = reduce(lambda x,y: float(x) + float(y), self.value)
+            mytotal = reduce(lambda x, y: float(x) + float(y), self.value)
             mycdf = 0.0
 
             value = self.value
 
             if display_all:
-                subnames = [ '[%d]' % i for i in range(len(value)) ]
+                subnames = ["[%d]" % i for i in range(len(value))]
             else:
-                subnames = [''] * len(value)
+                subnames = [""] * len(value)
 
-            if self.__dict__.has_key('subnames'):
-                for i,each in enumerate(self.subnames):
+            if "subnames" in self.__dict__:
+                for i, each in enumerate(self.subnames):
                     if len(each) > 0:
-                        subnames[i] = '.%s' % each
+                        subnames[i] = ".%s" % each
 
-            subdescs = [self.desc]*len(value)
-            if self.__dict__.has_key('subdescs'):
-                for i in xrange(min(len(value), len(self.subdescs))):
+            subdescs = [self.desc] * len(value)
+            if "subdescs" in self.__dict__:
+                for i in range(min(len(value), len(self.subdescs))):
                     subdescs[i] = self.subdescs[i]
 
-            for val,sname,sdesc in map(None, value, subnames, subdescs):
+            # for val,sname,sdesc in map(None, value, subnames, subdescs):
+            for val, sname, sdesc in itertools.zip_longest(value, subnames, subdescs):
                 if mytotal > 0.0:
                     mypdf = float(val) / float(mytotal)
                     mycdf += mypdf
-                    if (self.flags & flags_pdf):
+                    if self.flags & flags_pdf:
                         p.pdf = mypdf
                         p.cdf = mycdf
 
@@ -139,10 +147,12 @@ class VectorDisplay:
                 p.value = val
                 p.display()
 
-            if (self.flags & flags_total):
-                if (p.__dict__.has_key('pdf')): del p.__dict__['pdf']
-                if (p.__dict__.has_key('cdf')): del p.__dict__['cdf']
-                p.name = self.name + '.total'
+            if self.flags & flags_total:
+                if "pdf" in p.__dict__:
+                    del p.__dict__["pdf"]
+                if "cdf" in p.__dict__:
+                    del p.__dict__["cdf"]
+                p.name = self.name + ".total"
                 p.desc = self.desc
                 p.value = mytotal
                 p.display()
@@ -152,4 +162,3 @@ class VectorDisplay:
             p.desc = self.desc
             p.value = self.value
             p.display()
-

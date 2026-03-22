@@ -320,7 +320,7 @@ def addSEOptions(parser):
                       help="Redirect stderr to a file.")
 
 def addFSOptions(parser):
-    from FSConfig import os_types
+    from .FSConfig import os_types
 
     # Simulation options
     parser.add_option("--timesync", action="store_true",

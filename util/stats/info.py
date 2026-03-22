@@ -26,87 +26,113 @@
 #
 # Authors: Nathan Binkert
 
-from __future__ import division
-import operator, re, types
+
+import itertools
+import operator
+import re
+from functools import reduce
+
 
 class ProxyError(Exception):
     pass
 
+
 def unproxy(proxy):
-    if hasattr(proxy, '__unproxy__'):
+    if hasattr(proxy, "__unproxy__"):
         return proxy.__unproxy__()
 
     return proxy
 
+
 def scalar(stat):
     stat = unproxy(stat)
-    assert(stat.__scalar__() != stat.__vector__())
+    assert stat.__scalar__() != stat.__vector__()
     return stat.__scalar__()
+
 
 def vector(stat):
     stat = unproxy(stat)
-    assert(stat.__scalar__() != stat.__vector__())
+    assert stat.__scalar__() != stat.__vector__()
     return stat.__vector__()
+
 
 def value(stat, *args):
     stat = unproxy(stat)
     return stat.__value__(*args)
 
+
 def values(stat, run):
     stat = unproxy(stat)
     result = []
-    for i in xrange(len(stat)):
+    for i in range(len(stat)):
         val = value(stat, run, i)
         if val is None:
             return None
         result.append(val)
     return result
 
+
 def total(stat, run):
     return sum(values(stat, run))
+
 
 def len(stat):
     stat = unproxy(stat)
     return stat.__len__()
 
+
 class Value(object):
     def __scalar__(self):
-        raise AttributeError, "must define __scalar__ for %s" % (type (self))
+        raise AttributeError("must define __scalar__ for %s" % (type(self)))
+
     def __vector__(self):
-        raise AttributeError, "must define __vector__ for %s" % (type (self))
+        raise AttributeError("must define __vector__ for %s" % (type(self)))
 
     def __add__(self, other):
         return BinaryProxy(operator.__add__, self, other)
+
     def __sub__(self, other):
         return BinaryProxy(operator.__sub__, self, other)
+
     def __mul__(self, other):
         return BinaryProxy(operator.__mul__, self, other)
+
     def __div__(self, other):
         return BinaryProxy(operator.__div__, self, other)
+
     def __truediv__(self, other):
         return BinaryProxy(operator.__truediv__, self, other)
+
     def __floordiv__(self, other):
         return BinaryProxy(operator.__floordiv__, self, other)
 
     def __radd__(self, other):
         return BinaryProxy(operator.__add__, other, self)
+
     def __rsub__(self, other):
         return BinaryProxy(operator.__sub__, other, self)
+
     def __rmul__(self, other):
         return BinaryProxy(operator.__mul__, other, self)
+
     def __rdiv__(self, other):
         return BinaryProxy(operator.__div__, other, self)
+
     def __rtruediv__(self, other):
         return BinaryProxy(operator.__truediv__, other, self)
+
     def __rfloordiv__(self, other):
         return BinaryProxy(operator.__floordiv__, other, self)
 
     def __neg__(self):
         return UnaryProxy(operator.__neg__, self)
+
     def __pos__(self):
         return UnaryProxy(operator.__pos__, self)
+
     def __abs__(self):
         return UnaryProxy(operator.__abs__, self)
+
 
 class Scalar(Value):
     def __scalar__(self):
@@ -116,7 +142,8 @@ class Scalar(Value):
         return False
 
     def __value__(self, run):
-        raise AttributeError, '__value__ must be defined'
+        raise AttributeError("__value__ must be defined")
+
 
 class VectorItemProxy(Value):
     def __init__(self, proxy, index):
@@ -132,6 +159,7 @@ class VectorItemProxy(Value):
     def __value__(self, run):
         return value(self.proxy, run, self.index)
 
+
 class Vector(Value):
     def __scalar__(self):
         return False
@@ -140,42 +168,51 @@ class Vector(Value):
         return True
 
     def __value__(self, run, index):
-        raise AttributeError, '__value__ must be defined'
+        raise AttributeError("__value__ must be defined")
 
     def __getitem__(self, index):
         return VectorItemProxy(self, index)
 
+
 class ScalarConstant(Scalar):
     def __init__(self, constant):
         self.constant = constant
+
     def __value__(self, run):
         return self.constant
+
     def __str__(self):
         return str(self.constant)
+
 
 class VectorConstant(Vector):
     def __init__(self, constant):
         self.constant = constant
+
     def __value__(self, run, index):
         return self.constant[index]
+
     def __len__(self):
         return len(self.constant)
+
     def __str__(self):
         return str(self.constant)
 
+
 def WrapValue(value):
-    if isinstance(value, (int, long, float)):
+    if isinstance(value, (int, float)):
         return ScalarConstant(value)
     if isinstance(value, (list, tuple)):
         return VectorConstant(value)
     if isinstance(value, Value):
         return value
 
-    raise AttributeError, 'Only values can be wrapped'
+    raise AttributeError("Only values can be wrapped")
+
 
 class Statistic(object):
     def __getattr__(self, attr):
-        if attr in ('data', 'x', 'y'):
+        if attr in ("data", "x", "y"):
             result = self.source.data(self, self.ticks)
             self.data = result.data
             self.x = result.x
@@ -183,29 +220,31 @@ class Statistic(object):
         return super(Statistic, self).__getattribute__(attr)
 
     def __setattr__(self, attr, value):
-        if attr == 'stat':
-            raise AttributeError, '%s is read only' % stat
-        if attr in ('source', 'ticks'):
+        if attr == "stat":
+            raise AttributeError("%s is read only" % stat)
+        if attr in ("source", "ticks"):
             if getattr(self, attr) != value:
-                if hasattr(self, 'data'):
-                    delattr(self, 'data')
+                if hasattr(self, "data"):
+                    delattr(self, "data")
 
         super(Statistic, self).__setattr__(attr, value)
 
     def __str__(self):
         return self.name
 
+
 class ValueProxy(Value):
     def __getattr__(self, attr):
-        if attr == '__value__':
+        if attr == "__value__":
             if scalar(self):
                 return self.__scalarvalue__
             if vector(self):
                 return self.__vectorvalue__
-        if attr == '__len__':
+        if attr == "__len__":
             if vector(self):
                 return self.__vectorlen__
         return super(ValueProxy, self).__getattribute__(attr)
+
 
 class UnaryProxy(ValueProxy):
     def __init__(self, op, arg):
@@ -235,11 +274,12 @@ class UnaryProxy(ValueProxy):
 
     def __str__(self):
         if self.op == operator.__neg__:
-            return '-%s' % str(self.arg)
+            return "-%s" % str(self.arg)
         if self.op == operator.__pos__:
-            return '+%s' % str(self.arg)
+            return "+%s" % str(self.arg)
         if self.op == operator.__abs__:
-            return 'abs(%s)' % self.arg
+            return "abs(%s)" % self.arg
+
 
 class BinaryProxy(ValueProxy):
     def __init__(self, op, arg0, arg1):
@@ -292,20 +332,22 @@ class BinaryProxy(ValueProxy):
         len1 = len(self.arg1)
 
         if len0 != len1:
-            raise AttributeError, \
-                  "vectors of different lengths %d != %d" % (len0, len1)
+            raise AttributeError("vectors of different lengths %d != %d" % (len0, len1))
 
         return len0
 
     def __str__(self):
-        ops = { operator.__add__ : '+',
-                operator.__sub__ : '-',
-                operator.__mul__ : '*',
-                operator.__div__ : '/',
-                operator.__truediv__ : '/',
-                operator.__floordiv__ : '//' }
+        ops = {
+            operator.__add__: "+",
+            operator.__sub__: "-",
+            operator.__mul__: "*",
+            operator.__div__: "/",
+            operator.__truediv__: "/",
+            operator.__floordiv__: "//",
+        }
 
-        return '(%s %s %s)' % (str(self.arg0), ops[self.op], str(self.arg1))
+        return "(%s %s %s)" % (str(self.arg0), ops[self.op], str(self.arg1))
+
 
 class Proxy(Value):
     def __init__(self, name, dict):
@@ -324,6 +366,7 @@ class Proxy(Value):
     def __str__(self):
         return str(self.dict[self.name])
 
+
 class ItemProxy(Proxy):
     def __init__(self, proxy, index):
         self.proxy = proxy
@@ -333,7 +376,8 @@ class ItemProxy(Proxy):
         return unproxy(unproxy(self.proxy)[self.index])
 
     def __str__(self):
-        return '%s[%s]' % (self.proxy, self.index)
+        return "%s[%s]" % (self.proxy, self.index)
+
 
 class AttrProxy(Proxy):
     def __init__(self, proxy, attr):
@@ -344,16 +388,17 @@ class AttrProxy(Proxy):
         proxy = unproxy(self.proxy)
         try:
             attr = getattr(proxy, self.attr)
-        except AttributeError, e:
-            raise ProxyError, e
+        except AttributeError as e:
+            raise ProxyError(e)
         return unproxy(attr)
 
     def __str__(self):
-        return '%s.%s' % (self.proxy, self.attr)
+        return "%s.%s" % (self.proxy, self.attr)
+
 
 class ProxyGroup(object):
     def __init__(self, dict=None, **kwargs):
-        self.__dict__['dict'] = {}
+        self.__dict__["dict"] = {}
 
         if dict is not None:
             self.dict.update(dict)
@@ -367,14 +412,16 @@ class ProxyGroup(object):
     def __setattr__(self, attr, value):
         self.dict[attr] = value
 
-class ScalarStat(Statistic,Scalar):
+
+class ScalarStat(Statistic, Scalar):
     def __value__(self, run):
         if run not in self.data:
             return None
         return self.data[run][0][0]
 
     def display(self, run=None):
-        import display
+        from . import display
+
         p = display.Print()
         p.name = self.name
         p.desc = self.desc
@@ -384,7 +431,8 @@ class ScalarStat(Statistic,Scalar):
         if display.all or (self.flags & flags.printable):
             p.display()
 
-class VectorStat(Statistic,Vector):
+
+class VectorStat(Statistic, Vector):
     def __value__(self, run, item):
         if run not in self.data:
             return None
@@ -394,26 +442,29 @@ class VectorStat(Statistic,Vector):
         return self.x
 
     def display(self, run=None):
-        import display
+        from . import display
+
         d = display.VectorDisplay()
         d.name = self.name
         d.desc = self.desc
-        d.value = [ value(self, run, i) for i in xrange(len(self)) ]
+        d.value = [value(self, run, i) for i in range(len(self))]
         d.flags = self.flags
         d.precision = self.precision
         d.display()
 
+
 class Formula(Value):
     def __getattribute__(self, attr):
-        if attr not in ( '__scalar__', '__vector__', '__value__', '__len__' ):
+        if attr not in ("__scalar__", "__vector__", "__value__", "__len__"):
             return super(Formula, self).__getattribute__(attr)
 
-        formula = re.sub(':', '__', self.formula)
+        formula = re.sub(":", "__", self.formula)
         value = eval(formula, self.source.stattop)
         return getattr(value, attr)
 
     def __str__(self):
         return self.name
+
 
 class SimpleDist(Statistic):
     def __init__(self, sums, squares, samples):
@@ -422,7 +473,8 @@ class SimpleDist(Statistic):
         self.samples = samples
 
     def display(self, name, desc, flags, precision):
-        import display
+        from . import display
+
         p = display.Print()
         p.flags = flags
         p.precision = precision
@@ -434,12 +486,13 @@ class SimpleDist(Statistic):
 
             p.name = name + ".stdev"
             if self.samples > 1:
-                var = (self.samples * self.squares - self.sums ** 2) \
-                      / (self.samples * (self.samples - 1))
+                var = (self.samples * self.squares - self.sums**2) / (
+                    self.samples * (self.samples - 1)
+                )
                 if var >= 0:
                     p.value = math.sqrt(var)
                 else:
-                    p.value = 'NaN'
+                    p.value = "NaN"
             else:
                 p.value = 0.0
             p.display()
@@ -452,8 +505,11 @@ class SimpleDist(Statistic):
         return True
 
     def __eq__(self, other):
-        return self.sums == other.sums and self.squares == other.squares and \
-               self.samples == other.samples
+        return (
+            self.sums == other.sums
+            and self.squares == other.squares
+            and self.samples == other.samples
+        )
 
     def __isub__(self, other):
         self.sums -= other.sums
@@ -475,9 +531,23 @@ class SimpleDist(Statistic):
         self.samples /= other
         return self
 
+
 class FullDist(SimpleDist):
-    def __init__(self, sums, squares, samples, minval, maxval,
-                 under, vec, over, min, max, bsize, size):
+    def __init__(
+        self,
+        sums,
+        squares,
+        samples,
+        minval,
+        maxval,
+        under,
+        vec,
+        over,
+        min,
+        max,
+        bsize,
+        size,
+    ):
         self.sums = sums
         self.squares = squares
         self.samples = samples
@@ -492,48 +562,55 @@ class FullDist(SimpleDist):
         self.size = size
 
     def display(self, name, desc, flags, precision):
-        import display
+        from . import display
+
         p = display.Print()
         p.flags = flags
         p.precision = precision
 
-        p.name = name + '.min_val'
+        p.name = name + ".min_val"
         p.value = self.minval
         p.display()
 
-        p.name = name + '.max_val'
+        p.name = name + ".max_val"
         p.value = self.maxval
         p.display()
 
-        p.name = name + '.underflow'
+        p.name = name + ".underflow"
         p.value = self.under
         p.display()
 
         i = self.min
         for val in self.vec[:-1]:
-            p.name = name + '[%d:%d]' % (i, i + self.bsize - 1)
+            p.name = name + "[%d:%d]" % (i, i + self.bsize - 1)
             p.value = val
             p.display()
             i += self.bsize
 
-        p.name = name + '[%d:%d]' % (i, self.max)
+        p.name = name + "[%d:%d]" % (i, self.max)
         p.value = self.vec[-1]
         p.display()
 
-
-        p.name = name + '.overflow'
+        p.name = name + ".overflow"
         p.value = self.over
         p.display()
 
         SimpleDist.display(self, name, desc, flags, precision)
 
     def comparable(self, other):
-        return self.min == other.min and self.max == other.max and \
-               self.bsize == other.bsize and self.size == other.size
+        return (
+            self.min == other.min
+            and self.max == other.max
+            and self.bsize == other.bsize
+            and self.size == other.size
+        )
 
     def __eq__(self, other):
-        return self.sums == other.sums and self.squares == other.squares and \
-               self.samples == other.samples
+        return (
+            self.sums == other.sums
+            and self.squares == other.squares
+            and self.samples == other.samples
+        )
 
     def __isub__(self, other):
         self.sums -= other.sums
@@ -544,7 +621,7 @@ class FullDist(SimpleDist):
             self.minval = min(self.minval, other.minval)
             self.maxval = max(self.maxval, other.maxval)
             self.under -= under
-            self.vec = map(lambda x,y: x - y, self.vec, other.vec)
+            self.vec = list(map(lambda x, y: x - y, self.vec, other.vec))
             self.over -= over
         return self
 
@@ -561,7 +638,7 @@ class FullDist(SimpleDist):
             self.minval = min(self.minval, other.minval)
             self.maxval = max(self.maxval, other.maxval)
             self.under += other.under
-            self.vec = map(lambda x,y: x + y, self.vec, other.vec)
+            self.vec = list(map(lambda x, y: x + y, self.vec, other.vec))
             self.over += other.over
         return self
 
@@ -574,22 +651,23 @@ class FullDist(SimpleDist):
 
         if self.samples:
             self.under /= other
-            for i in xrange(len(self.vec)):
+            for i in range(len(self.vec)):
                 self.vec[i] /= other
             self.over /= other
         return self
 
+
 class Dist(Statistic):
     def display(self):
-        import display
+        from . import display
+
         if not display.all and not (self.flags & flags.printable):
             return
 
         self.dist.display(self.name, self.desc, self.flags, self.precision)
 
     def comparable(self, other):
-        return self.name == other.name and \
-               self.dist.compareable(other.dist)
+        return self.name == other.name and self.dist.compareable(other.dist)
 
     def __eq__(self, other):
         return self.dist == other.dist
@@ -608,21 +686,26 @@ class Dist(Statistic):
         self.dist /= other
         return self
 
+
 class VectorDist(Statistic):
     def display(self):
-        import display
+        from . import display
+
         if not display.all and not (self.flags & flags.printable):
             return
 
         if isinstance(self.dist, SimpleDist):
             return
 
-        for dist,sn,sd,i in map(None, self.dist, self.subnames, self.subdescs,
-                                range(len(self.dist))):
+        # for dist,sn,sd,i in map(None, self.dist, self.subnames, self.subdescs,
+        #                         list(range(len(self.dist)))):
+        for dist, sn, sd, i in itertools.zip_longest(
+            self.dist, self.subnames, self.subdescs, range(len(self.dist))
+        ):
             if len(sn) > 0:
-                name = '%s.%s' % (self.name, sn)
+                name = "%s.%s" % (self.name, sn)
             else:
-                name = '%s[%d]' % (self.name, i)
+                name = "%s[%d]" % (self.name, i)
 
             if len(sd) > 0:
                 desc = sd
@@ -633,12 +716,13 @@ class VectorDist(Statistic):
 
         if (self.flags & flags.total) or 1:
             if isinstance(self.dist[0], SimpleDist):
-                disttotal = SimpleDist( \
+                disttotal = SimpleDist(
                     reduce(sums, [d.sums for d in self.dist]),
                     reduce(sums, [d.squares for d in self.dist]),
-                    reduce(sums, [d.samples for d in self.dist]))
+                    reduce(sums, [d.samples for d in self.dist]),
+                )
             else:
-                disttotal = FullDist( \
+                disttotal = FullDist(
                     reduce(sums, [d.sums for d in self.dist]),
                     reduce(sums, [d.squares for d in self.dist]),
                     reduce(sums, [d.samples for d in self.dist]),
@@ -650,34 +734,36 @@ class VectorDist(Statistic):
                     dist[0].min,
                     dist[0].max,
                     dist[0].bsize,
-                    dist[0].size)
+                    dist[0].size,
+                )
 
-            name = '%s.total' % (self.name)
+            name = "%s.total" % (self.name)
             desc = self.desc
             disttotal.display(name, desc, self.flags, self.precision)
 
     def comparable(self, other):
-        return self.name == other.name and \
-               alltrue(map(lambda x, y : x.comparable(y),
-                           self.dist,
-                           other.dist))
+        return self.name == other.name and alltrue(
+            list(map(lambda x, y: x.comparable(y), self.dist, other.dist))
+        )
 
     def __eq__(self, other):
-        return alltrue(map(lambda x, y : x == y, self.dist, other.dist))
+        return alltrue(list(map(lambda x, y: x == y, self.dist, other.dist)))
 
     def __isub__(self, other):
-        if isinstance(self.dist, (list, tuple)) and \
-               isinstance(other.dist, (list, tuple)):
-            for sd,od in zip(self.dist, other.dist):
+        if isinstance(self.dist, (list, tuple)) and isinstance(
+            other.dist, (list, tuple)
+        ):
+            for sd, od in zip(self.dist, other.dist):
                 sd -= od
         else:
             self.dist -= other.dist
         return self
 
     def __iadd__(self, other):
-        if isinstance(self.dist, (list, tuple)) and \
-               isinstance(other.dist, (list, tuple)):
-            for sd,od in zip(self.dist, other.dist):
+        if isinstance(self.dist, (list, tuple)) and isinstance(
+            other.dist, (list, tuple)
+        ):
+            for sd, od in zip(self.dist, other.dist):
                 sd += od
         else:
             self.dist += other.dist
@@ -693,27 +779,29 @@ class VectorDist(Statistic):
             self.dist /= other
         return self
 
+
 class Vector2d(Statistic):
     def display(self):
-        import display
+        from . import display
+
         if not display.all and not (self.flags & flags.printable):
             return
 
         d = display.VectorDisplay()
         d.__dict__.update(self.__dict__)
 
-        if self.__dict__.has_key('ysubnames'):
+        if "ysubnames" in self.__dict__:
             ysubnames = list(self.ysubnames)
             slack = self.x - len(ysubnames)
             if slack > 0:
-                ysubnames.extend(['']*slack)
+                ysubnames.extend([""] * slack)
         else:
-            ysubnames = range(self.x)
+            ysubnames = list(range(self.x))
 
-        for x,sname in enumerate(ysubnames):
+        for x, sname in enumerate(ysubnames):
             o = x * self.y
-            d.value = self.value[o:o+self.y]
-            d.name = '%s[%s]' % (self.name, sname)
+            d.value = self.value[o : o + self.y]
+            d.name = "%s[%s]" % (self.name, sname)
             d.display()
 
         if self.flags & flags.total:
@@ -724,12 +812,11 @@ class Vector2d(Statistic):
                     xtot += self.value[y + x * self.x]
                 d.value.append(xtot)
 
-            d.name = self.name + '.total'
+            d.name = self.name + ".total"
             d.display()
 
     def comparable(self, other):
-        return self.name == other.name and self.x == other.x and \
-               self.y == other.y
+        return self.name == other.name and self.x == other.x and self.y == other.y
 
     def __eq__(self, other):
         return True
@@ -745,24 +832,24 @@ class Vector2d(Statistic):
             return self
         return self
 
+
 def NewStat(source, data):
     stat = None
-    if data.type == 'SCALAR':
+    if data.type == "SCALAR":
         stat = ScalarStat()
-    elif data.type == 'VECTOR':
+    elif data.type == "VECTOR":
         stat = VectorStat()
-    elif data.type == 'DIST':
+    elif data.type == "DIST":
         stat = Dist()
-    elif data.type == 'VECTORDIST':
+    elif data.type == "VECTORDIST":
         stat = VectorDist()
-    elif data.type == 'VECTOR2D':
+    elif data.type == "VECTOR2D":
         stat = Vector2d()
-    elif data.type == 'FORMULA':
+    elif data.type == "FORMULA":
         stat = Formula()
 
-    stat.__dict__['source'] = source
-    stat.__dict__['ticks'] = None
+    stat.__dict__["source"] = source
+    stat.__dict__["ticks"] = None
     stat.__dict__.update(data.__dict__)
 
     return stat
-

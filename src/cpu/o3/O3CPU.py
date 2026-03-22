@@ -181,5 +181,5 @@ class DerivO3CPU(BaseCPU):
             self.checker.cpu_id = self.cpu_id
 
         else:
-            print "ERROR: Checker only supported under ARM ISA!"
+            print("ERROR: Checker only supported under ARM ISA!")
             exit(1)

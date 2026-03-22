@@ -34,25 +34,25 @@ from _m5.debug import schedBreak, setRemoteGDBPort
 from m5.util import printList
 
 def help():
-    print "Base Flags:"
+    print("Base Flags:")
     for name in sorted(flags):
         if name == 'All':
             continue
         flag = flags[name]
         children = [c for c in flag.kids() ]
         if not children:
-            print "    %s: %s" % (name, flag.desc())
-    print
-    print "Compound Flags:"
+            print("    %s: %s" % (name, flag.desc()))
+    print()
+    print("Compound Flags:")
     for name in sorted(flags):
         if name == 'All':
             continue
         flag = flags[name]
         children = [c for c in flag.kids() ]
         if children:
-            print "    %s: %s" % (name, flag.desc())
+            print("    %s: %s" % (name, flag.desc()))
             printList([ c.name() for c in children ], indent=8)
-    print
+    print()
 
 class AllFlags(DictMixin):
     def __init__(self):
@@ -65,7 +65,7 @@ class AllFlags(DictMixin):
             return
 
         self._dict.clear()
-        for name, flag in _m5.debug.allFlags().items():
+        for name, flag in list(_m5.debug.allFlags().items()):
             self._dict[name] = flag
         self._version = current_version
 
@@ -79,26 +79,26 @@ class AllFlags(DictMixin):
 
     def keys(self):
         self._update()
-        return self._dict.keys()
+        return list(self._dict.keys())
 
     def values(self):
         self._update()
-        return self._dict.values()
+        return list(self._dict.values())
 
     def items(self):
         self._update()
-        return self._dict.items()
+        return list(self._dict.items())
 
     def iterkeys(self):
         self._update()
-        return self._dict.iterkeys()
+        return iter(self._dict.keys())
 
     def itervalues(self):
         self._update()
-        return self._dict.itervalues()
+        return iter(self._dict.values())
 
     def iteritems(self):
         self._update()
-        return self._dict.iteritems()
+        return iter(self._dict.items())
 
 flags = AllFlags()

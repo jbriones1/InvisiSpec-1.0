@@ -38,11 +38,11 @@ import sys
 import os
 
 def run_cmd(explanation, working_dir, cmd):
-    print "Running phase '%s'" % explanation
+    print("Running phase '%s'" % explanation)
     return_code = call(cmd, cwd = working_dir)
     if return_code == 0:
         return
-    print "Error running phase %s. Returncode: %d" % (explanation, return_code)
+    print("Error running phase %s. Returncode: %d" % (explanation, return_code))
     sys.exit(1)
 
 script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -65,21 +65,21 @@ parser.add_option("--dest-dir", default = "/tmp",
 (options, args) = parser.parse_args()
 
 if args:
-    print "Unrecognized argument(s) %s." % args
+    print("Unrecognized argument(s) %s." % args)
     sys.exit(1)
 
 if not os.path.isdir(options.dest_dir):
-    print "Error: %s is not a directory." % options.dest_dir
+    print("Error: %s is not a directory." % options.dest_dir)
     sys.exit(1)
 
 binaries_dir = options.dest_dir + "/binaries"
 
 if os.path.exists(binaries_dir):
-    print "Error: %s already exists." % binaries_dir
+    print("Error: %s already exists." % binaries_dir)
     sys.exit(1)
 
 if machine() != "x86_64":
-    print "Error: This script should run in a x86_64 machine"
+    print("Error: This script should run in a x86_64 machine")
     sys.exit(1)
 
 # Some basic dependency checking
@@ -97,7 +97,7 @@ needed_programs = [
 
 for program in needed_programs:
     if not spawn.find_executable(program):
-        print "Error: command %s not found in $PATH" % program
+        print("Error: command %s not found in $PATH" % program)
         print ("If running on an Debian-based linux, please try the following "
                "cmd to get all the necessary packages: ")
         print ("sudo apt-get install -y make gcc bc gcc-aarch64-linux-gnu "
@@ -216,5 +216,5 @@ run_cmd("copy arm bootloaders",
     bootloader_arm_dir,
     ["cp", "boot.arm", "boot_emm.arm", binaries_dir])
 
-print "Done! All the generated files can be found in %s" % binaries_dir
+print("Done! All the generated files can be found in %s" % binaries_dir)
 

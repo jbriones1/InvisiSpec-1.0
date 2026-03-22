@@ -100,7 +100,7 @@ def minorMakeOpClassSet(op_classes):
     def boxOpClass(op_class):
         return MinorOpClass(opClass=op_class)
 
-    return MinorOpClassSet(opClasses=map(boxOpClass, op_classes))
+    return MinorOpClassSet(opClasses=list(map(boxOpClass, op_classes)))
 
 class MinorFU(SimObject):
     type = 'MinorFU'
@@ -275,5 +275,5 @@ class MinorCPU(BaseCPU):
         numThreads = Parent.numThreads), "Branch Predictor")
 
     def addCheckerCpu(self):
-        print "Checker not yet supported by MinorCPU"
+        print("Checker not yet supported by MinorCPU")
         exit(1)

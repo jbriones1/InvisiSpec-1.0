@@ -4,6 +4,7 @@ parsetab.py
 cscope.files
 cscope.out
 *.pyc
+*.py.bak
 *~
 .*.swp
 .*.swo

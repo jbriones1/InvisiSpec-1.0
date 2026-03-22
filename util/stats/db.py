@@ -26,14 +26,18 @@
 #
 # Authors: Nathan Binkert
 
-import MySQLdb, re, string
+import re
+import string
+
+import MySQLdb
+
 
 def statcmp(a, b):
-    v1 = a.split('.')
-    v2 = b.split('.')
+    v1 = a.split(".")
+    v2 = b.split(".")
 
     last = min(len(v1), len(v2)) - 1
-    for i,j in zip(v1[0:last], v2[0:last]):
+    for i, j in zip(v1[0:last], v2[0:last]):
         if i != j:
             return cmp(i, j)
 
@@ -43,12 +47,14 @@ def statcmp(a, b):
     else:
         return cmp(len(v1), len(v2))
 
+
 class RunData:
     def __init__(self, row):
         self.run = int(row[0])
         self.name = row[1]
         self.user = row[2]
         self.project = row[3]
+
 
 class SubData:
     def __init__(self, row):
@@ -58,10 +64,11 @@ class SubData:
         self.name = row[3]
         self.descr = row[4]
 
+
 class Data:
     def __init__(self, row):
         if len(row) != 5:
-            raise 'stat db error'
+            raise ("stat db error")
         self.stat = int(row[0])
         self.run = int(row[1])
         self.x = int(row[2])
@@ -69,8 +76,14 @@ class Data:
         self.data = float(row[4])
 
     def __repr__(self):
-        return '''Data(['%d', '%d', '%d', '%d', '%f'])''' % ( self.stat,
-            self.run, self.x, self.y, self.data)
+        return """Data(['%d', '%d', '%d', '%d', '%f'])""" % (
+            self.stat,
+            self.run,
+            self.x,
+            self.y,
+            self.data,
+        )
+
 
 class StatData(object):
     def __init__(self, row):
@@ -81,29 +94,39 @@ class StatData(object):
         self.prereq = int(row[5])
         self.precision = int(row[6])
 
-        import flags
-        self.flags = 0
-        if int(row[4]): self.flags |= flags.printable
-        if int(row[7]): self.flags |= flags.nozero
-        if int(row[8]): self.flags |= flags.nonan
-        if int(row[9]): self.flags |= flags.total
-        if int(row[10]): self.flags |= flags.pdf
-        if int(row[11]): self.flags |= flags.cdf
+        from . import flags
 
-        if self.type == 'DIST' or self.type == 'VECTORDIST':
+        self.flags = 0
+        if int(row[4]):
+            self.flags |= flags.printable
+        if int(row[7]):
+            self.flags |= flags.nozero
+        if int(row[8]):
+            self.flags |= flags.nonan
+        if int(row[9]):
+            self.flags |= flags.total
+        if int(row[10]):
+            self.flags |= flags.pdf
+        if int(row[11]):
+            self.flags |= flags.cdf
+
+        if self.type == "DIST" or self.type == "VECTORDIST":
             self.min = float(row[12])
             self.max = float(row[13])
             self.bktsize = float(row[14])
             self.size = int(row[15])
 
-        if self.type == 'FORMULA':
+        if self.type == "FORMULA":
             self.formula = self.db.allFormulas[self.stat]
+
 
 class Node(object):
     def __init__(self, name):
         self.name = name
+
     def __str__(self):
         return self.name
+
 
 class Result(object):
     def __init__(self, x, y):
@@ -116,15 +139,16 @@ class Result(object):
 
     def __getitem__(self, run):
         if run not in self.data:
-            self.data[run] = [ [ 0.0 ] * self.y for i in xrange(self.x) ]
+            self.data[run] = [[0.0] * self.y for i in range(self.x)]
         return self.data[run]
+
 
 class Database(object):
     def __init__(self):
-        self.host = 'zizzer.pool'
-        self.user = ''
-        self.passwd = ''
-        self.db = 'm5stats'
+        self.host = "zizzer.pool"
+        self.user = ""
+        self.passwd = ""
+        self.db = "m5stats"
         self.cursor = None
 
         self.allStats = []
@@ -143,10 +167,10 @@ class Database(object):
         self.statdict = {}
         self.statlist = []
 
-        self.mode = 'sum';
+        self.mode = "sum"
         self.runs = None
         self.ticks = None
-        self.method = 'sum'
+        self.method = "sum"
         self._method = type(self).sum
 
     def get(self, job, stat, system=None):
@@ -154,8 +178,9 @@ class Database(object):
         if run is None:
             return None
 
-        from info import ProxyError, scalar, vector, value, values, total, len
-        if system is None and hasattr(job, 'system'):
+        from .info import ProxyError, scalar, value, values, vector
+
+        if system is None and hasattr(job, "system"):
             system = job.system
 
         if system is not None:
@@ -177,18 +202,18 @@ class Database(object):
         dict.update(self.stattop)
 
     def append(self, stat):
-        statname = re.sub(':', '__', stat.name)
-        path = string.split(statname, '.')
+        statname = re.sub(":", "__", stat.name)
+        path = string.split(statname, ".")
         pathtop = path[0]
-        fullname = ''
+        fullname = ""
 
         x = self
         while len(path) > 1:
             name = path.pop(0)
-            if not x.__dict__.has_key(name):
+            if name not in x.__dict__:
                 x.__dict__[name] = Node(fullname + name)
             x = x.__dict__[name]
-            fullname = '%s%s.' % (fullname, name)
+            fullname = "%s%s." % (fullname, name)
 
         name = path.pop(0)
         x.__dict__[name] = stat
@@ -199,37 +224,37 @@ class Database(object):
 
     def connect(self):
         # connect
-        self.thedb = MySQLdb.connect(db=self.db,
-                                     host=self.host,
-                                     user=self.user,
-                                     passwd=self.passwd)
+        self.thedb = MySQLdb.connect(
+            db=self.db, host=self.host, user=self.user, passwd=self.passwd
+        )
 
         # create a cursor
         self.cursor = self.thedb.cursor()
 
-        self.query('''select rn_id,rn_name,rn_sample,rn_user,rn_project
-                   from runs''')
+        self.query("""select rn_id,rn_name,rn_sample,rn_user,rn_project
+                   from runs""")
         for result in self.cursor.fetchall():
-            run = RunData(result);
+            run = RunData(result)
             self.allRuns.append(run)
             self.allRunIds[run.run] = run
             self.allRunNames[run.name] = run
 
-        self.query('select sd_stat,sd_x,sd_y,sd_name,sd_descr from subdata')
+        self.query("select sd_stat,sd_x,sd_y,sd_name,sd_descr from subdata")
         for result in self.cursor.fetchall():
             subdata = SubData(result)
-            if self.allSubData.has_key(subdata.stat):
+            if subdata.stat in self.allSubData:
                 self.allSubData[subdata.stat].append(subdata)
             else:
-                self.allSubData[subdata.stat] = [ subdata ]
+                self.allSubData[subdata.stat] = [subdata]
 
-        self.query('select * from formulas')
-        for id,formula in self.cursor.fetchall():
+        self.query("select * from formulas")
+        for id, formula in self.cursor.fetchall():
             self.allFormulas[int(id)] = formula.tostring()
 
         StatData.db = self
-        self.query('select * from stats')
-        import info
+        self.query("select * from stats")
+        from . import info
+
         for result in self.cursor.fetchall():
             stat = info.NewStat(self, StatData(result))
             self.append(stat)
@@ -241,45 +266,45 @@ class Database(object):
     # Desc: Prints all runs matching a given user, if no argument
     #       is given all runs are returned
     def listRuns(self, user=None):
-        print '%-40s %-10s %-5s' % ('run name', 'user', 'id')
-        print '-' * 62
+        print("%-40s %-10s %-5s" % ("run name", "user", "id"))
+        print("-" * 62)
         for run in self.allRuns:
             if user == None or user == run.user:
-                print '%-40s %-10s %-10d' % (run.name, run.user, run.run)
+                print("%-40s %-10s %-10d" % (run.name, run.user, run.run))
 
     # Name: listTicks
     # Desc: Prints all samples for a given run
     def listTicks(self, runs=None):
-        print "tick"
-        print "----------------------------------------"
-        sql = 'select distinct dt_tick from data where dt_stat=1180 and ('
+        print("tick")
+        print("----------------------------------------")
+        sql = "select distinct dt_tick from data where dt_stat=1180 and ("
         if runs != None:
             first = True
             for run in runs:
-               if first:
-            #       sql += ' where'
-                   first = False
-               else:
-                   sql += ' or'
-               sql += ' dt_run=%s' % run.run
-            sql += ')'
+                if first:
+                    #       sql += ' where'
+                    first = False
+                else:
+                    sql += " or"
+                sql += " dt_run=%s" % run.run
+            sql += ")"
         self.query(sql)
         for r in self.cursor.fetchall():
-            print r[0]
+            print(r[0])
 
     # Name: retTicks
     # Desc: Prints all samples for a given run
     def retTicks(self, runs=None):
-        sql = 'select distinct dt_tick from data where dt_stat=1180 and ('
+        sql = "select distinct dt_tick from data where dt_stat=1180 and ("
         if runs != None:
             first = True
             for run in runs:
-               if first:
-                   first = False
-               else:
-                   sql += ' or'
-               sql += ' dt_run=%s' % run.run
-            sql += ')'
+                if first:
+                    first = False
+                else:
+                    sql += " or"
+                sql += " dt_run=%s" % run.run
+            sql += ")"
         self.query(sql)
         ret = []
         for r in self.cursor.fetchall():
@@ -291,42 +316,42 @@ class Database(object):
     #         the optional argument is a regular expression that can
     #         be used to prune the result set
     def listStats(self, regex=None):
-        print '%-60s %-8s %-10s' % ('stat name', 'id', 'type')
-        print '-' * 80
+        print("%-60s %-8s %-10s" % ("stat name", "id", "type"))
+        print("-" * 80)
 
         rx = None
         if regex != None:
             rx = re.compile(regex)
 
-        stats = [ stat.name for stat in self.allStats ]
+        stats = [stat.name for stat in self.allStats]
         stats.sort(statcmp)
         for stat in stats:
             stat = self.allStatNames[stat]
             if rx == None or rx.match(stat.name):
-                print '%-60s %-8s %-10s' % (stat.name, stat.stat, stat.type)
+                print("%-60s %-8s %-10s" % (stat.name, stat.stat, stat.type))
 
     # Name: liststats
     # Desc: Prints all statistics that appear in the database,
     #         the optional argument is a regular expression that can
     #         be used to prune the result set
     def listFormulas(self, regex=None):
-        print '%-60s %s' % ('formula name', 'formula')
-        print '-' * 80
+        print("%-60s %s" % ("formula name", "formula"))
+        print("-" * 80)
 
         rx = None
         if regex != None:
             rx = re.compile(regex)
 
-        stats = [ stat.name for stat in self.allStats ]
+        stats = [stat.name for stat in self.allStats]
         stats.sort(statcmp)
         for stat in stats:
             stat = self.allStatNames[stat]
-            if stat.type == 'FORMULA' and (rx == None or rx.match(stat.name)):
-                print '%-60s %s' % (stat.name, self.allFormulas[stat.stat])
+            if stat.type == "FORMULA" and (rx == None or rx.match(stat.name)):
+                print("%-60s %s" % (stat.name, self.allFormulas[stat.stat]))
 
     def getStat(self, stats):
         if type(stats) is not list:
-            stats = [ stats ]
+            stats = [stats]
 
         ret = []
         for stat in stats:
@@ -344,65 +369,65 @@ class Database(object):
     # get the data
     #
     def query(self, op, stat, ticks, group=False):
-        sql = 'select '
-        sql += 'dt_stat as stat, '
-        sql += 'dt_run as run, '
-        sql += 'dt_x as x, '
-        sql += 'dt_y as y, '
+        sql = "select "
+        sql += "dt_stat as stat, "
+        sql += "dt_run as run, "
+        sql += "dt_x as x, "
+        sql += "dt_y as y, "
         if group:
-            sql += 'dt_tick as tick, '
-        sql += '%s(dt_data) as data ' % op
-        sql += 'from data '
-        sql += 'where '
+            sql += "dt_tick as tick, "
+        sql += "%s(dt_data) as data " % op
+        sql += "from data "
+        sql += "where "
 
         if isinstance(stat, list):
-            val = ' or '.join([ 'dt_stat=%d' % s.stat for s in stat ])
-            sql += ' (%s)' % val
+            val = " or ".join(["dt_stat=%d" % s.stat for s in stat])
+            sql += " (%s)" % val
         else:
-            sql += ' dt_stat=%d' % stat.stat
+            sql += " dt_stat=%d" % stat.stat
 
         if self.runs != None and len(self.runs):
-            val = ' or '.join([ 'dt_run=%d' % r for r in self.runs ])
-            sql += ' and (%s)' % val
+            val = " or ".join(["dt_run=%d" % r for r in self.runs])
+            sql += " and (%s)" % val
 
         if ticks != None and len(ticks):
-            val = ' or '.join([ 'dt_tick=%d' % s for s in ticks ])
-            sql += ' and (%s)' % val
+            val = " or ".join(["dt_tick=%d" % s for s in ticks])
+            sql += " and (%s)" % val
 
-        sql += ' group by dt_stat,dt_run,dt_x,dt_y'
+        sql += " group by dt_stat,dt_run,dt_x,dt_y"
         if group:
-            sql += ',dt_tick'
+            sql += ",dt_tick"
         return sql
 
     # Name: sum
     # Desc: given a run, a stat and an array of samples, total the samples
     def sum(self, *args, **kwargs):
-        return self.query('sum', *args, **kwargs)
+        return self.query("sum", *args, **kwargs)
 
     # Name: avg
     # Desc: given a run, a stat and an array of samples, average the samples
     def avg(self, stat, ticks):
-        return self.query('avg', *args, **kwargs)
+        return self.query("avg", *args, **kwargs)
 
     # Name: stdev
     # Desc: given a run, a stat and an array of samples, get the standard
     #       deviation
     def stdev(self, stat, ticks):
-        return self.query('stddev', *args, **kwargs)
+        return self.query("stddev", *args, **kwargs)
 
     def __setattr__(self, attr, value):
         super(Database, self).__setattr__(attr, value)
-        if attr != 'method':
+        if attr != "method":
             return
 
-        if value == 'sum':
+        if value == "sum":
             self._method = self.sum
-        elif value == 'avg':
+        elif value == "avg":
             self._method = self.avg
-        elif value == 'stdev':
+        elif value == "stdev":
             self._method = self.stdev
         else:
-            raise AttributeError, "can only set get to: sum | avg | stdev"
+            raise AttributeError("can only set get to: sum | avg | stdev")
 
     def data(self, stat, ticks=None):
         if ticks is None:
@@ -415,9 +440,9 @@ class Database(object):
         ymax = 0
         for x in self.cursor.fetchall():
             data = Data(x)
-            if not runs.has_key(data.run):
+            if data.run not in runs:
                 runs[data.run] = {}
-            if not runs[data.run].has_key(data.x):
+            if data.x not in runs[data.run]:
                 runs[data.run][data.x] = {}
 
             xmax = max(xmax, data.x)
@@ -425,10 +450,10 @@ class Database(object):
             runs[data.run][data.x][data.y] = data.data
 
         results = Result(xmax + 1, ymax + 1)
-        for run,data in runs.iteritems():
+        for run, data in runs.items():
             result = results[run]
-            for x,ydata in data.iteritems():
-                for y,data in ydata.iteritems():
+            for x, ydata in data.items():
+                for y, data in ydata.items():
                     result[x][y] = data
         return results
 
