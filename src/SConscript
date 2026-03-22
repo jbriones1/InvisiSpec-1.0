@@ -114,7 +114,7 @@ class SourceList(list):
     def apply_filter(self, f):
         def match(source):
             return f.predicate(source.tags)
-        return SourceList(filter(match, self))
+        return SourceList(list(filter(match, self)))
 
     def __getattr__(self, name):
         func = source_filter_factories.get(name, None)
@@ -133,12 +133,11 @@ class SourceMeta(type):
         super(SourceMeta, cls).__init__(name, bases, dict)
         cls.all = SourceList()
 
-class SourceFile(object):
+class SourceFile(object, metaclass=SourceMeta):
     '''Base object that encapsulates the notion of a source file.
     This includes, the source node, target node, various manipulations
     of those.  A source file also specifies a set of tags which
     describing arbitrary properties of the source file.'''
-    __metaclass__ = SourceMeta
 
     static_objs = {}
     shared_objs = {}
@@ -146,14 +145,14 @@ class SourceFile(object):
     def __init__(self, source, tags=None, add_tags=None):
         if tags is None:
             tags='gem5 lib'
-        if isinstance(tags, basestring):
+        if isinstance(tags, str):
             tags = set([tags])
         if not isinstance(tags, set):
             tags = set(tags)
         self.tags = tags
 
         if add_tags:
-            if isinstance(add_tags, basestring):
+            if isinstance(add_tags, str):
                 add_tags = set([add_tags])
             if not isinstance(add_tags, set):
                 add_tags = set(add_tags)
@@ -289,7 +288,7 @@ class SimObject(PySource):
         the m5.objects package)'''
         super(SimObject, self).__init__('m5.objects', source, tags, add_tags)
         if self.fixed:
-            raise AttributeError, "Too late to call SimObject now."
+            raise AttributeError("Too late to call SimObject now.")
 
         bisect.insort_right(SimObject.modnames, self.modname)
 
@@ -334,8 +333,8 @@ class GTest(UnitTest):
     all = []
     def __init__(self, *args, **kwargs):
         isFilter = lambda arg: isinstance(arg, SourceFilter)
-        self.filters = filter(isFilter, args)
-        args = filter(lambda a: not isFilter(a), args)
+        self.filters = list(filter(isFilter, args))
+        args = [a for a in args if not isFilter(a)]
         super(GTest, self).__init__(*args, **kwargs)
         self.dir = Dir('.')
         self.skip_lib = kwargs.pop('skip_lib', False)
@@ -355,12 +354,12 @@ Export('GTest')
 debug_flags = {}
 def DebugFlag(name, desc=None):
     if name in debug_flags:
-        raise AttributeError, "Flag %s already specified" % name
+        raise AttributeError("Flag %s already specified" % name)
     debug_flags[name] = (name, (), desc)
 
 def CompoundFlag(name, flags, desc=None):
     if name in debug_flags:
-        raise AttributeError, "Flag %s already specified" % name
+        raise AttributeError("Flag %s already specified" % name)
 
     compound = tuple(flags)
     debug_flags[name] = (name, compound, desc)
@@ -464,7 +463,7 @@ def makeTheISA(source, target, env):
 
     code.write(str(target[0]))
 
-env.Command('config/the_isa.hh', map(Value, all_isa_list),
+env.Command('config/the_isa.hh', list(map(Value, all_isa_list)),
             MakeAction(makeTheISA, Transform("CFG ISA", 0)))
 
 def makeTheGPUISA(source, target, env):
@@ -509,7 +508,7 @@ def makeTheGPUISA(source, target, env):
 
     code.write(str(target[0]))
 
-env.Command('config/the_gpu_isa.hh', map(Value, all_gpu_isa_list),
+env.Command('config/the_gpu_isa.hh', list(map(Value, all_gpu_isa_list)),
             MakeAction(makeTheGPUISA, Transform("CFG ISA", 0)))
 
 ########################################################################
@@ -570,7 +569,7 @@ class DictImporter(object):
             mod.__path__ = source.modpath
         mod.__file__ = source.abspath
 
-        exec file(source.abspath, 'r') in mod.__dict__
+        exec(file(source.abspath, 'r'), mod.__dict__)
 
         return mod
 
@@ -600,8 +599,8 @@ sys.meta_path.remove(importer)
 sim_objects = m5.SimObject.allClasses
 all_enums = m5.params.allEnums
 
-for name,obj in sorted(sim_objects.iteritems()):
-    for param in obj._params.local.values():
+for name,obj in sorted(sim_objects.items()):
+    for param in list(obj._params.local.values()):
         # load the ptype attribute now because it depends on the
         # current version of SimObject.allClasses, but when scons
         # actually uses the value, all versions of
@@ -653,7 +652,7 @@ PySource('m5', 'python/m5/defines.py')
 def makeInfoPyFile(target, source, env):
     code = code_formatter()
     for src in source:
-        data = ''.join(file(src.srcnode().abspath, 'r').xreadlines())
+        data = ''.join(file(src.srcnode().abspath, 'r'))
         code('$src = ${{repr(data)}}')
     code.write(str(target[0]))
 
@@ -723,7 +722,7 @@ def createSimObjectPyBindWrapper(target, source, env):
 
 # Generate all of the SimObject param C++ struct header files
 params_hh_files = []
-for name,simobj in sorted(sim_objects.iteritems()):
+for name,simobj in sorted(sim_objects.items()):
     py_source = PySource.modules[simobj.__module__]
     extra_deps = [ py_source.tnode ]
 
@@ -735,7 +734,7 @@ for name,simobj in sorted(sim_objects.iteritems()):
 
 # C++ parameter description files
 if GetOption('with_cxx_config'):
-    for name,simobj in sorted(sim_objects.iteritems()):
+    for name,simobj in sorted(sim_objects.items()):
         py_source = PySource.modules[simobj.__module__]
         extra_deps = [ py_source.tnode ]
 
@@ -760,14 +759,14 @@ if GetOption('with_cxx_config'):
 
         code = code_formatter()
 
-        for name,simobj in sorted(sim_objects.iteritems()):
+        for name,simobj in sorted(sim_objects.items()):
             if not hasattr(simobj, 'abstract') or not simobj.abstract:
                 code('#include "cxx_config/${name}.hh"')
         code()
         code('void cxxConfigInit()')
         code('{')
         code.indent()
-        for name,simobj in sorted(sim_objects.iteritems()):
+        for name,simobj in sorted(sim_objects.items()):
             not_abstract = not hasattr(simobj, 'abstract') or \
                 not simobj.abstract
             if not_abstract and 'type' in simobj.__dict__:
@@ -782,14 +781,14 @@ if GetOption('with_cxx_config'):
     env.Command(cxx_config_init_cc_file, Value(name),
         MakeAction(createCxxConfigInitCC, Transform("CXXCINIT")))
     cxx_param_hh_files = ["cxx_config/%s.hh" % simobj
-        for name,simobj in sorted(sim_objects.iteritems())
+        for name,simobj in sorted(sim_objects.items())
         if not hasattr(simobj, 'abstract') or not simobj.abstract]
     Depends(cxx_config_init_cc_file, cxx_param_hh_files +
             [File('sim/cxx_config.hh')])
     Source(cxx_config_init_cc_file)
 
 # Generate all enum header files
-for name,enum in sorted(all_enums.iteritems()):
+for name,enum in sorted(all_enums.items()):
     py_source = PySource.modules[enum.__module__]
     extra_deps = [ py_source.tnode ]
 
@@ -806,7 +805,7 @@ for name,enum in sorted(all_enums.iteritems()):
 
 # Generate SimObject Python bindings wrapper files
 if env['USE_PYTHON']:
-    for name,simobj in sorted(sim_objects.iteritems()):
+    for name,simobj in sorted(sim_objects.items()):
         py_source = PySource.modules[simobj.__module__]
         extra_deps = [ py_source.tnode ]
         cc_file = File('python/_m5/param_%s.cc' % name)
@@ -831,7 +830,7 @@ if env['HAVE_PROTOBUF']:
         # Add the C++ source file
         Source(proto.cc_file, tags=proto.tags)
 elif ProtoBuf.all:
-    print 'Got protobuf to build, but lacks support!'
+    print('Got protobuf to build, but lacks support!')
     Exit(1)
 
 #
@@ -858,7 +857,7 @@ namespace Debug {
 
 ''')
 
-    for name, flag in sorted(source[0].read().iteritems()):
+    for name, flag in sorted(source[0].read().items()):
         n, compound, desc = flag
         assert n == name
 
@@ -920,7 +919,7 @@ namespace Debug {
 
     code.write(str(target[0]))
 
-for name,flag in sorted(debug_flags.iteritems()):
+for name,flag in sorted(debug_flags.items()):
     n, compound, desc = flag
     assert n == name
 
@@ -973,7 +972,7 @@ const uint8_t data_${sym}[] = {
 ''')
     code.indent()
     step = 16
-    for i in xrange(0, len(data), step):
+    for i in range(0, len(data), step):
         x = array.array('B', data[i:i+step])
         code(''.join('%d,' % d for d in x))
     code.dedent()
@@ -1166,7 +1165,7 @@ elif env['CLANG']:
     for target in ['opt', 'fast', 'prof', 'perf']:
         ccflags[target] += ['-O3']
 else:
-    print 'Unknown compiler, please fix compiler options'
+    print('Unknown compiler, please fix compiler options')
     Exit(1)
 
 
@@ -1182,7 +1181,7 @@ def identifyTarget(t):
     ext = t.split('.')[-1]
     if ext in target_types:
         return ext
-    if obj2target.has_key(ext):
+    if ext in obj2target:
         return obj2target[ext]
     match = re.search(r'/tests/([^/]+)/', t)
     if match and match.group(1) in target_types:

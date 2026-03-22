@@ -9,6 +9,8 @@ cscope.out
 .*.swp
 .*.swo
 m5out
+**/SConscript.bak
+SConstruct.bak
 /src/doxygen
 /ext/dramsim2/DRAMSim2
 /ext/mcpat/regression/*/*.out
