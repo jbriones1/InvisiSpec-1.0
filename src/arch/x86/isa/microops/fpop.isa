@@ -195,8 +195,7 @@ let {{
 
             return cls
 
-    class FpUnaryOp(X86Microop):
-        __metaclass__ = FpOpMeta
+    class FpUnaryOp(X86Microop, metaclass=FpOpMeta):
         # This class itself doesn't act as a microop
         abstract = True
 

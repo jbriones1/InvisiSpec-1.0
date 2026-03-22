@@ -102,7 +102,7 @@ def do_embed_text(target, source, env):
 generated_dir = Dir('../protocol')
 
 def MakeIncludeAction(target, source, env):
-    f = file(str(target[0]), 'w')
+    f = open(str(target[0]), 'w')
     for s in source:
         print('#include "%s"' % str(s.abspath), file=f)
     f.close()

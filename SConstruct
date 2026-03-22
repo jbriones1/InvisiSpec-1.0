@@ -1028,7 +1028,7 @@ export_vars += ['USE_FENV', 'SS_COMPATIBLE_FP', 'TARGET_ISA', 'TARGET_GPU_ISA',
 # value of the variable.
 def build_config_file(target, source, env):
     (variable, value) = [s.get_contents() for s in source]
-    f = file(str(target[0]), 'w')
+    f = open(str(target[0]), 'w')
     print('#define', variable, value, file=f)
     f.close()
     return None

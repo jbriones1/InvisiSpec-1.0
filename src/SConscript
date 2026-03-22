@@ -954,7 +954,7 @@ def embedPyFile(target, source, env):
     it, compress it, and stick it into an asm file so the code appears
     as just bytes with a label in the data section'''
 
-    src = file(str(source[0]), 'r').read()
+    src = open(str(source[0]), 'r').read()
 
     pysource = PySource.tnodes[source[0]]
     compiled = compile(src, pysource.abspath, 'exec')
