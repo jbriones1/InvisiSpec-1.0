@@ -44,12 +44,20 @@ from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
 from m5.SimObject import SimObject
-from BaseCPU import BaseCPU
-from DummyChecker import DummyChecker
-from BranchPredictor import *
-from TimingExpr import TimingExpr
+from m5.objects.BaseCPU import BaseCPU
+from m5.objects.DummyChecker import DummyChecker
+from m5.objects.BranchPredictor import *
+from m5.objects.TimingExpr import TimingExpr
 
-from FuncUnit import OpClass
+from m5.objects.FuncUnit import OpClass
+from m5.objects.MinorCPU import *
+from m5.objects.MinorCPU import *
+from m5.objects.MinorCPU import *
+from m5.objects.MinorCPU import *
+from m5.objects.MinorCPU import *
+from m5.objects.FuncUnit import *
+from m5.objects.MinorCPU import *
+from m5.objects.TimingExpr import *
 
 class MinorOpClass(SimObject):
     """Boxing of OpClass to get around build problems and provide a hook for

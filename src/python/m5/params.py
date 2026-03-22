@@ -172,6 +172,8 @@ class ParamDesc(object):
 
     def __getattr__(self, attr):
         if attr == 'ptype':
+            if self.ptype_str not in SimObject.allClasses:
+                        raise KeyError("ptype_str '%s' not found in allClasses. Available: %s" % (self.ptype_str, list(SimObject.allClasses.keys())))
             ptype = SimObject.allClasses[self.ptype_str]
             assert isSimObjectClass(ptype)
             self.ptype = ptype

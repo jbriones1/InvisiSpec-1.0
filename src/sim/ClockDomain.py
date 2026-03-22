@@ -40,6 +40,8 @@
 from m5.params import *
 from m5.SimObject import SimObject
 from m5.proxy import *
+from m5.objects.ClockDomain import *
+from m5.objects.VoltageDomain import *
 
 # Abstract clock domain
 class ClockDomain(SimObject):

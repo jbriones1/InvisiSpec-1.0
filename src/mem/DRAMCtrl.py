@@ -45,7 +45,10 @@
 #          Erfan Azarkhish
 
 from m5.params import *
-from AbstractMemory import *
+from m5.objects.AbstractMemory import *
+from m5.objects.DRAMCtrl import *
+from m5.objects.DRAMCtrl import *
+from m5.objects.DRAMCtrl import *
 
 # Enum for memory scheduling algorithms, currently First-Come
 # First-Served and a First-Row Hit then First-Come First-Served

@@ -28,6 +28,7 @@
 
 from m5.SimObject import SimObject
 from m5.params import *
+from m5.objects.DiskImage import *
 class DiskImage(SimObject):
     type = 'DiskImage'
     abstract = True

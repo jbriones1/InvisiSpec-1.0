@@ -36,8 +36,10 @@
 # Authors: Andreas Sandberg
 
 from m5.params import *
-from Device import BasicPioDevice
-from Gic import *
+from m5.objects.Device import BasicPioDevice
+from m5.objects.Gic import *
+from m5.objects.NoMali import *
+from m5.objects.RealView import *
 
 class NoMaliGpuType(Enum): vals = [
     'T60x',

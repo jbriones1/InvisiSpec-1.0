@@ -29,6 +29,8 @@
 from m5.SimObject import *
 from m5.params import *
 from m5.proxy import *
+from m5.objects.Process import *
+from m5.objects.System import *
 
 class Process(SimObject):
     type = 'Process'

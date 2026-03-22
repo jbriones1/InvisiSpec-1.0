@@ -28,8 +28,13 @@
 #          Brad Beckmann
 
 from m5.params import *
-from ClockedObject import ClockedObject
-from BasicLink import BasicLink
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.BasicLink import BasicLink
+from m5.objects.BasicLink import *
+from m5.objects.BasicLink import *
+from m5.objects.BasicRouter import *
+from m5.objects.ClockedObject import *
+from m5.objects.RubySystem import *
 
 class RubyNetwork(ClockedObject):
     type = 'RubyNetwork'

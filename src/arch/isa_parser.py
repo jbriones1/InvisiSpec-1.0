@@ -233,7 +233,7 @@ class Format(object):
         self.params = params
         label = 'def format ' + id
         self.user_code = compile(fixPythonIndentation(code), label, 'exec')
-        param_list = string.join(params, ", ")
+        param_list = ".join(params, ")
         f = '''def defInst(_code, _context, %s):
                 my_locals = vars().copy()
                 exec _code in _context, my_locals
@@ -1303,7 +1303,7 @@ def makeFlagConstructor(flag_list):
             i += 1
     pre = '\n\tflags['
     post = '] = true;'
-    code = pre + string.join(flag_list, post + pre) + post
+    code = pre + post + pre.join(flag_list) + post
     return code
 
 # Assume all instruction flags are of the form 'IsFoo'
@@ -2490,7 +2490,7 @@ StaticInstPtr
         (?<!\w)      # neg. lookbehind assertion: prevent partial matches
         ((%s)(?:_(%s))?)   # match: operand with optional '_' then suffix
         (?!\w)       # neg. lookahead assertion: prevent partial matches
-        ''' % (string.join(operands, '|'), string.join(extensions, '|'))
+        ''' % ('|').join(operands, '|'), string.join(extensions)
 
         self.operandsRE = re.compile(operandsREString, re.MULTILINE|re.VERBOSE)
 
@@ -2498,7 +2498,7 @@ StaticInstPtr
         # groups are returned (base and ext, not full name as above).
         # Used for subtituting '_' for '.' to make C++ identifiers.
         operandsWithExtREString = r'(?<!\w)(%s)_(%s)(?!\w)' \
-            % (string.join(operands, '|'), string.join(extensions, '|'))
+            % ('|').join(operands, '|'), string.join(extensions)
 
         self.operandsWithExtRE = \
             re.compile(operandsWithExtREString, re.MULTILINE)

@@ -39,11 +39,26 @@
 # Authors: Nathan Binkert
 #          Andreas Hansson
 
-from MemObject import MemObject
-from System import System
+from m5.objects.MemObject import MemObject
+from m5.objects.System import System
 from m5.params import *
 from m5.proxy import *
 from m5.SimObject import SimObject
+from m5.objects.XBar import *
+from m5.objects.System import *
+
+class SnoopFilter(SimObject):
+    type = 'SnoopFilter'
+    cxx_header = "mem/snoop_filter.hh"
+
+    # Lookup latency of the snoop filter, added to requests that pass
+    # through a coherent crossbar.
+    lookup_latency = Param.Cycles(1, "Lookup latency")
+
+    system = Param.System(Parent.any, "System that the crossbar belongs to.")
+
+    # Sanity check on max capacity to track, adjust if needed.
+    max_capacity = Param.MemorySize('8MB', "Maximum capacity of snoop filter")
 
 class BaseXBar(MemObject):
     type = 'BaseXBar'
@@ -111,19 +126,6 @@ class CoherentXBar(BaseXBar):
                                       "point of unification")
 
     system = Param.System(Parent.any, "System that the crossbar belongs to.")
-
-class SnoopFilter(SimObject):
-    type = 'SnoopFilter'
-    cxx_header = "mem/snoop_filter.hh"
-
-    # Lookup latency of the snoop filter, added to requests that pass
-    # through a coherent crossbar.
-    lookup_latency = Param.Cycles(1, "Lookup latency")
-
-    system = Param.System(Parent.any, "System that the crossbar belongs to.")
-
-    # Sanity check on max capacity to track, adjust if needed.
-    max_capacity = Param.MemorySize('8MB', "Maximum capacity of snoop filter")
 
 # We use a coherent crossbar to connect multiple masters to the L2
 # caches. Normally this crossbar would be part of the cache itself.

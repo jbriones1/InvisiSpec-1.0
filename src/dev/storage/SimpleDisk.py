@@ -29,6 +29,8 @@
 from m5.SimObject import SimObject
 from m5.params import *
 from m5.proxy import *
+from m5.objects.DiskImage import *
+from m5.objects.System import *
 
 class SimpleDisk(SimObject):
     type = 'SimpleDisk'

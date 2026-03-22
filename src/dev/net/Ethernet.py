@@ -42,7 +42,13 @@ from m5.defines import buildEnv
 from m5.SimObject import SimObject
 from m5.params import *
 from m5.proxy import *
-from PciDevice import PciDevice
+from m5.objects.PciDevice import PciDevice
+
+class EtherDump(SimObject):
+    type = 'EtherDump'
+    cxx_header = "dev/net/etherdump.hh"
+    file = Param.String("dump file")
+    maxlen = Param.Int(96, "max portion of packet data to dump")
 
 class EtherObject(SimObject):
     type = 'EtherObject'
@@ -116,12 +122,6 @@ class EtherTapStub(EtherTapBase):
     type = 'EtherTapStub'
     cxx_header = "dev/net/ethertap.hh"
     port = Param.UInt16(3500, "Port helper should send packets to")
-
-class EtherDump(SimObject):
-    type = 'EtherDump'
-    cxx_header = "dev/net/etherdump.hh"
-    file = Param.String("dump file")
-    maxlen = Param.Int(96, "max portion of packet data to dump")
 
 class EtherDevice(PciDevice):
     type = 'EtherDevice'

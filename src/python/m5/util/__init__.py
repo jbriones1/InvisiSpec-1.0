@@ -197,7 +197,7 @@ def readCommand(cmd, **kwargs):
             return exception
         raise
 
-    return subp.communicate()[0]
+    return subp.communicate()[0].decode('utf-8').strip()
 
 def makeDir(path):
     """Make a directory if it doesn't exist.  If the path does exist,

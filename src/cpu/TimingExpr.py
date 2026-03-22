@@ -37,6 +37,8 @@
 
 from m5.params import *
 from m5.SimObject import SimObject
+from m5.objects.TimingExpr import *
+from m5.objects.TimingExpr import *
 
 # These classes define an expression language over uint64_t with only
 # a few operators.  This can be used to form expressions for the extra

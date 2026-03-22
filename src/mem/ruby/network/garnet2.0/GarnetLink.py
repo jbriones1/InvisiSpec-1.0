@@ -30,8 +30,10 @@
 
 from m5.params import *
 from m5.proxy import *
-from ClockedObject import ClockedObject
-from BasicLink import BasicIntLink, BasicExtLink
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.BasicLink import BasicIntLink, BasicExtLink
+from m5.objects.GarnetLink import *
+from m5.objects.GarnetLink import *
 
 class NetworkLink(ClockedObject):
     type = 'NetworkLink'

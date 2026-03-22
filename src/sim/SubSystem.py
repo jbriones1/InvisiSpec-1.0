@@ -38,6 +38,7 @@
 
 from m5.SimObject import SimObject
 from m5.params import *
+from m5.objects.ThermalDomain import *
 
 # An empty simobject. Used for organizing simobjects
 # into logical groups as subsystems of a larger

@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import io
 
 import ply.lex
 import ply.yacc
@@ -94,8 +95,6 @@ class Grammar(object):
     def parse_string(self, data, source='<string>', debug=None, tracking=0):
         if not isinstance(data, str):
             raise AttributeError("argument must be a string, was '%s'" % type(f))
-
-        import new
         lexer = self.lex.clone()
         lexer.input(data)
         self.lexers.append((lexer, source))
@@ -105,7 +104,8 @@ class Grammar(object):
             'goto'        : self.yacc.goto,
             'errorfunc'   : self.yacc.errorfunc,
             }
-        parser = new.instance(ply.yacc.LRParser, dict)
+        parser = ply.yacc.LRParser.__new__(ply.yacc.LRParser)
+        parser.__dict__.update(dict)
         result = parser.parse(lexer=lexer, debug=debug, tracking=tracking)
         self.lexers.pop()
         return result
@@ -113,8 +113,8 @@ class Grammar(object):
     def parse_file(self, f, **kwargs):
         if isinstance(f, str):
             source = f
-            f = file(f, 'r')
-        elif isinstance(f, file):
+            f = open(f, 'r')
+        elif isinstance(f, io.IOBase):
             source = f.name
         else:
             raise AttributeError("argument must be either a string or file, was '%s'" % type(f))

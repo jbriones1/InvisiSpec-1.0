@@ -151,13 +151,12 @@ class code_formatter(object, metaclass=code_formatter_meta):
         self._data = []
 
     def write(self, *args):
-        f = file(os.path.join(*args), "w")
-        for data in self._data:
-            f.write(data)
-        f.close()
+        with open(os.path.join(*args), "w") as f:
+            for data in self._data:
+                f.write(data)
 
     def __str__(self):
-        data = string.join(self._data, '')
+        data = ''.join(self._data)
         self._data = [ data ]
         return data
 

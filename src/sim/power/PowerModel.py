@@ -38,6 +38,8 @@
 from m5.SimObject import *
 from m5.params import *
 from m5.proxy import Parent
+from m5.objects.PowerModelState import *
+from m5.objects.SubSystem import *
 
 # Represents a power model for a simobj
 # The model itself is also a SimObject so we can make use some

@@ -42,6 +42,7 @@ from m5.SimObject import *
 from m5.params import *
 from m5.params import isNullPointer
 from m5.proxy import *
+from m5.objects.Platform import *
 
 class ProbeEvent(object):
     def __init__(self, pmu, _eventId, obj, *listOfNames):

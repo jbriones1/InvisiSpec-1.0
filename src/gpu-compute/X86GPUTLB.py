@@ -38,6 +38,7 @@ from m5.params import *
 from m5.proxy import *
 
 from m5.objects.MemObject import MemObject
+from m5.objects.System import *
 
 if buildEnv['FULL_SYSTEM']:
     class X86PagetableWalker(MemObject):

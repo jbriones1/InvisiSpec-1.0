@@ -28,7 +28,7 @@
 
 __all__ = [ 'orderdict' ]
 
-from UserDict import DictMixin
+from collections.abc import MutableMapping as DictMixin
 
 class orderdict(dict, DictMixin):
     def __init__(self, *args, **kwargs):
@@ -70,4 +70,4 @@ class orderdict(dict, DictMixin):
         return [ self[key] for key in self._keys ]
 
     def items(self):
-        return [ (self[key],key) for key in self._keys ]
+        return [ (key, self[key]) for key in self._keys ]

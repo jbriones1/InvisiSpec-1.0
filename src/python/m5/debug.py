@@ -1,4 +1,4 @@
-# Copyright (c) 2008 The Hewlett-Packard Development Company
+
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 #
 # Authors: Nathan Binkert
 
-from UserDict import DictMixin
+from collections.abc import MutableMapping as DictMixin
 
 import _m5.debug
 from _m5.debug import SimpleFlag, CompoundFlag

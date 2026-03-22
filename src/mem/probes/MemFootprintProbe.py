@@ -38,7 +38,8 @@
 
 from m5.params import *
 from m5.proxy import *
-from BaseMemProbe import BaseMemProbe
+from m5.objects.BaseMemProbe import BaseMemProbe
+from m5.objects.System import *
 
 class MemFootprintProbe(BaseMemProbe):
     type = "MemFootprintProbe"

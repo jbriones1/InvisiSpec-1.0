@@ -569,7 +569,7 @@ class DictImporter(object):
             mod.__path__ = source.modpath
         mod.__file__ = source.abspath
 
-        exec(file(source.abspath, 'r'), mod.__dict__)
+        exec(open(source.abspath, 'r').read(), mod.__dict__)
 
         return mod
 

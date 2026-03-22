@@ -26,9 +26,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from MemObject import MemObject
+from m5.objects.MemObject import MemObject
 from m5.params import *
 from m5.proxy import *
+from m5.objects.System import *
 
 class RubyTester(MemObject):
     type = 'RubyTester'

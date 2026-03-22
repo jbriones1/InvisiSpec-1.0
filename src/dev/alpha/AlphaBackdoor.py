@@ -29,7 +29,12 @@
 from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
-from Device import BasicPioDevice
+from m5.objects.Device import BasicPioDevice
+from m5.objects.AlphaSystem import *
+from m5.objects.BaseCPU import *
+from m5.objects.Platform import *
+from m5.objects.SimpleDisk import *
+from m5.objects.Terminal import *
 
 class AlphaBackdoor(BasicPioDevice):
     type = 'AlphaBackdoor'

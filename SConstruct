@@ -431,6 +431,9 @@ if main['GCC']:
     # qualifiers, so play it safe and keep only what comes before
     # the first hyphen
     as_version = as_version_raw[-1].split('-')[0] if as_version_raw else None
+    
+    if as_version and not re.match(r'^\d+\.', as_version):
+        as_version = None
 
     if not as_version or compareVersions(as_version, "2.23") < 0:
         print(termcap.Yellow + termcap.Bold + \
