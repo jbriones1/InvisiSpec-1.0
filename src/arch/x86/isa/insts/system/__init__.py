@@ -38,6 +38,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["control_registers",
               "halt",
               "invlpg",
@@ -47,6 +48,6 @@ categories = ["control_registers",
 
 microcode = ""
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode
 

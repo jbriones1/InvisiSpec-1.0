@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["compare_and_write_mask",
               "compare_and_write_minimum_or_maximum",
               "compare_and_write_rflags"]
@@ -43,5 +44,5 @@ microcode = '''
 # SSE instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

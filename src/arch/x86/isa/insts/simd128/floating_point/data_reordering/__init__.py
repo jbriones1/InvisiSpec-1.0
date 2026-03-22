@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["unpack_and_interleave",
               "shuffle"]
 
@@ -42,5 +43,5 @@ microcode = '''
 # SSE instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["initialize",
               "wait_for_exceptions",
               "clear_exceptions",
@@ -46,5 +47,5 @@ microcode = '''
 # X86 microcode
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

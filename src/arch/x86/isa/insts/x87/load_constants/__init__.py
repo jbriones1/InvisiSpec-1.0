@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["load_0_1_or_pi",
               "load_logarithm"]
 
@@ -42,5 +43,5 @@ microcode = '''
 # X86 microcode
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

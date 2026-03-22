@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["pack_with_saturation",
               "unpack_and_interleave",
               "extract_and_insert",
@@ -44,5 +45,5 @@ microcode = '''
 # 128 bit multimedia and scientific instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

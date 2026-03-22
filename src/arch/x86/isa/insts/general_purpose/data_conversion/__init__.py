@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["ascii_adjust",
               "bcd_adjust",
               "endian_conversion",
@@ -44,5 +45,5 @@ categories = ["ascii_adjust",
 
 microcode = ""
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

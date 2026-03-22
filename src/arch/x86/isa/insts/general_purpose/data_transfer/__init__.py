@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["conditional_move",
               "move",
               "stack_operations",
@@ -42,5 +43,5 @@ categories = ["conditional_move",
 
 microcode = ""
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

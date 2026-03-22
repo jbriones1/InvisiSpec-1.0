@@ -35,11 +35,12 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["load_and_store",
               "push_and_pop",
               "set_and_clear"]
 
 microcode = ""
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

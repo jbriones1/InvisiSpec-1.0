@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["call",
               "conditional_jump",
               "interrupts_and_exceptions",
@@ -44,5 +45,5 @@ categories = ["call",
 
 microcode = ""
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

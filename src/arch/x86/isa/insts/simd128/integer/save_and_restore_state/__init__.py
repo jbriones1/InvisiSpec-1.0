@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["save_and_restore_state",
               "save_and_restore_control_and_status"]
 
@@ -42,5 +43,5 @@ microcode = '''
 # 128 bit multimedia and scientific instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

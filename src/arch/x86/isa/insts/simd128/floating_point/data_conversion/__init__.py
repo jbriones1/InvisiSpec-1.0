@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["convert_floating_point_to_floating_point",
               "convert_floating_point_to_xmm_integer",
               "convert_floating_point_to_mmx_integer",
@@ -44,5 +45,5 @@ microcode = '''
 # SSE instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

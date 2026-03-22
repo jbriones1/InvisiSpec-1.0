@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["exit_media_state",
               "data_transfer",
               "data_conversion",
@@ -49,5 +50,5 @@ microcode = '''
 # 64 bit multimedia instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

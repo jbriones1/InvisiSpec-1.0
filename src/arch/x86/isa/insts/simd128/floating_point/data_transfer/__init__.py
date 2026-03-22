@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["move",
               "move_with_duplication",
               "move_non_temporal",
@@ -44,5 +45,5 @@ microcode = '''
 # SSE instructions
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

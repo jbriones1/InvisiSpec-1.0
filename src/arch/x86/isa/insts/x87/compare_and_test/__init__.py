@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["floating_point_ordered_compare",
               "floating_point_unordered_compare",
               "integer_compare",
@@ -45,5 +46,5 @@ microcode = '''
 # X86 microcode
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode

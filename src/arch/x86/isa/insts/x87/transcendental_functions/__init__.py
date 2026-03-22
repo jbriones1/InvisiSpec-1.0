@@ -35,6 +35,7 @@
 #
 # Authors: Gabe Black
 
+import importlib
 categories = ["trigonometric_functions",
               "logarithmic_functions"]
 
@@ -42,5 +43,5 @@ microcode = '''
 # X86 microcode
 '''
 for category in categories:
-    exec("import %s as cat" % category)
+    cat = importlib.import_module('.' + category, package=__name__)
     microcode += cat.microcode
