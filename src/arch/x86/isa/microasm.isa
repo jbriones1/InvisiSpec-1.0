@@ -51,7 +51,7 @@
 
 let {{
     import sys
-    sys.path[0:0] = ["src/arch/x86/isa/"]
+    import os; sys.path[0:0] = [os.path.abspath("src/arch/x86/isa/")]
     from insts import microcode
     # print microcode
     from micro_asm import MicroAssembler, Rom_Macroop

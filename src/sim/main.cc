@@ -45,7 +45,7 @@ main(int argc, char **argv)
     // Initialize m5 special signal handling.
     initSignals();
 
-    Py_SetProgramName(argv[0]);
+    Py_SetProgramName(Py_DecodeLocale(argv[0], NULL));
 
     // initialize embedded Python interpreter
     Py_Initialize();

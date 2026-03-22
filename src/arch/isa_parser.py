@@ -233,14 +233,15 @@ class Format(object):
         self.params = params
         label = 'def format ' + id
         self.user_code = compile(fixPythonIndentation(code), label, 'exec')
-        param_list = ".join(params, ")
+        param_list = ", ".join(params)
         f = '''def defInst(_code, _context, %s):
                 my_locals = vars().copy()
-                exec _code in _context, my_locals
+                exec (_code, _context, my_locals)
                 return my_locals\n''' % param_list
         c = compile(f, label + ' wrapper', 'exec')
-        exec(c)
-        self.func = defInst
+        tmp_env = {}
+        exec(c, tmp_env)
+        self.func = tmp_env['defInst']
 
     def defineInst(self, parser, name, args, lineno):
         parser.updateExportContext()
@@ -1169,7 +1170,7 @@ class OperandList(object):
     # internal helper function for concat[Some]Attr{Strings|Lists}
     def __internalConcatAttrs(self, attr_name, filter, result):
         for op_desc in self.items:
-            if list(filter(op_desc)):
+            if filter(op_desc):
                 result += getattr(op_desc, attr_name)
         return result
 
@@ -1194,7 +1195,7 @@ class OperandList(object):
         return self.__internalConcatAttrs(attr_name, filter, [])
 
     def sort(self):
-        self.items.sort(lambda a, b: a.sort_pri - b.sort_pri)
+        self.items.sort(key=lambda a: a.sort_pri)
 
 class SubOperandList(OperandList):
     '''Find all the operands in the given code block.  Returns an operand
@@ -2487,10 +2488,10 @@ StaticInstPtr
         extensions = list(self.operandTypeMap.keys())
 
         operandsREString = r'''
-        (?<!\w)      # neg. lookbehind assertion: prevent partial matches
-        ((%s)(?:_(%s))?)   # match: operand with optional '_' then suffix
-        (?!\w)       # neg. lookahead assertion: prevent partial matches
-        ''' % ('|').join(operands, '|'), string.join(extensions)
+                (?<!\w)      # neg. lookbehind assertion: prevent partial matches
+                ((%s)(?:_(%s))?)   # match: operand with optional '_' then suffix
+                (?!\w)       # neg. lookahead assertion: prevent partial matches
+                ''' % ('|'.join(operands), '|'.join(extensions))
 
         self.operandsRE = re.compile(operandsREString, re.MULTILINE|re.VERBOSE)
 
@@ -2498,7 +2499,7 @@ StaticInstPtr
         # groups are returned (base and ext, not full name as above).
         # Used for subtituting '_' for '.' to make C++ identifiers.
         operandsWithExtREString = r'(?<!\w)(%s)_(%s)(?!\w)' \
-            % ('|').join(operands, '|'), string.join(extensions)
+            % ('|'.join(operands), '|'.join(extensions))
 
         self.operandsWithExtRE = \
             re.compile(operandsWithExtREString, re.MULTILINE)

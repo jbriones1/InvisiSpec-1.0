@@ -425,9 +425,10 @@ def makeTheISA(source, target, env):
     isas = [ src.get_contents() for src in source ]
     target_isa = env['TARGET_ISA']
     def define(isa):
-        return isa.upper() + '_ISA'
+        return isa.upper() + '_ISA' if isinstance(isa, str) else isa.decode().upper() + '_ISA'
 
     def namespace(isa):
+        if isinstance(isa, bytes): isa = isa.decode('utf-8')
         return isa[0].upper() + isa[1:].lower() + 'ISA'
 
 
@@ -470,7 +471,7 @@ def makeTheGPUISA(source, target, env):
     isas = [ src.get_contents() for src in source ]
     target_gpu_isa = env['TARGET_GPU_ISA']
     def define(isa):
-        return isa.upper() + '_ISA'
+        return isa.upper() + '_ISA' if isinstance(isa, str) else isa.decode().upper() + '_ISA'
 
     def namespace(isa):
         return isa[0].upper() + isa[1:].lower() + 'ISA'
